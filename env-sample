@@ -1,7 +1,0 @@
-APP_NAME=my-app
-NODE_ENV=development
-PORT=3000
-DATABASE_URL=postgresql://testuser:testpass@localhost:5434/devdb
-DB_SSL=false
-DB_POOL_MAX=5
-JWT_SECRET=safjnkapokfamfjakfjakfjapofjakfjapofjakfjapofjakfjapofjakefja
