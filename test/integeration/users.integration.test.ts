@@ -1,23 +1,23 @@
-import { pool } from '../../src/db/pool';
-import { ensureSchema } from '../../src/db/schema';
+import { PrismaClient } from '@prisma/client';
 import { UserRepository } from '../../src/repositories/UserRepository';
 import { createUserPayload, resetUserFactory } from '../factories/user.factory';
 import { authHeader, createAdminToken, createUserToken } from '../helpers/auth.helper';
 import { api } from '../helpers/request.helpers';
 
-const userRepo = new UserRepository(pool);
+const prisma = new PrismaClient();
+const userRepo = new UserRepository(prisma);
 
 describe('User Integration Tests', () => {
   beforeAll(async () => {
-    await ensureSchema(pool);
+    await prisma.$connect();
   });
 
   afterAll(async () => {
-    await pool.end();
+    await prisma.$disconnect();
   });
 
   beforeEach(async () => {
-    await pool.query('DELETE FROM users');
+    await prisma.user.deleteMany();
     resetUserFactory();
   });
 

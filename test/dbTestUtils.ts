@@ -1,35 +1,24 @@
-import { Pool } from 'pg';
+import { PrismaClient } from '@prisma/client';
 import { afterAll, beforeAll, beforeEach } from 'vitest';
-import { ensureSchema } from '../src/db/schema';
+
+// Create a singleton test Prisma instance
+const testPrisma = new PrismaClient({
+  log: ['error'],
+});
 
 export function useTestDb() {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error('DATABASE_URL is not set');
-  }
-
-  const pool = new Pool({
-    connectionString,
-    max: 3,
-    ssl: false,
-    allowExitOnIdle: true,
-  });
-
-  pool.on('error', (err) => {
-    console.error('[test db] pool error', err);
-  });
-
   beforeAll(async () => {
-    await ensureSchema(pool);
+    await testPrisma.$connect();
   });
 
   beforeEach(async () => {
-    await pool.query(`TRUNCATE TABLE users CASCADE`);
+    // Clean up all tables
+    await testPrisma.user.deleteMany();
   });
 
   afterAll(async () => {
-    await pool.end();
+    await testPrisma.$disconnect();
   });
 
-  return pool;
+  return testPrisma;
 }

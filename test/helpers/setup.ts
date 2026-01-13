@@ -1,19 +1,23 @@
-import { pool } from '../../src/db/pool';
-import { ensureSchema } from '../../src/db/schema';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export async function setupTestDatabase(): Promise<void> {
-  await ensureSchema(pool);
+  await prisma.$connect();
 }
 
 export async function teardownTestDatabase(): Promise<void> {
-  await pool.query('TRUNCATE users CASCADE');
+  await prisma.user.deleteMany();
 }
 
 export async function cleanupDatabase(): Promise<void> {
-  await pool.query('DELETE FROM users');
+  await prisma.user.deleteMany();
 }
 
 export async function closeDatabase(): Promise<void> {
-  await pool.end();
+  await prisma.$disconnect();
 }
 
+export function getTestPrisma(): PrismaClient {
+  return prisma;
+}

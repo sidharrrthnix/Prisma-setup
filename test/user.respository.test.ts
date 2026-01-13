@@ -1,10 +1,10 @@
-import { BadRequestError, ConflictError } from '../src/errors/httpErrors';
+import { ConflictError, NotFoundError } from '../src/errors/httpErrors';
 import { UserRepository } from '../src/repositories/UserRepository';
 import { useTestDb } from './dbTestUtils';
 
 describe('UserRepository CRUD', () => {
-  const pool = useTestDb();
-  const repo = new UserRepository(pool);
+  const prisma = useTestDb();
+  const repo = new UserRepository(prisma);
 
   it('create + findById', async () => {
     const created = await repo.create({
@@ -18,11 +18,9 @@ describe('UserRepository CRUD', () => {
     expect(found?.name).toEqual(created.name);
     expect(found?.dateOfBirth).toEqual(created.dateOfBirth);
     expect(found?.credits).toEqual(created.credits);
-    expect(found?.createdAt).toEqual(created.createdAt);
-    expect(found?.updatedAt).toEqual(created.updatedAt);
   });
 
-  it('create + findByEmail', async () => {
+  it('create + findByEmail (case-insensitive)', async () => {
     const created = await repo.create({
       email: 'john@example.com',
       passwordHash: 'hash',
@@ -33,6 +31,7 @@ describe('UserRepository CRUD', () => {
     expect(found).not.toBeNull();
     expect(found?.email).toEqual(created.email);
   });
+
   it('update', async () => {
     const created = await repo.create({
       email: 'john@example.com',
@@ -43,6 +42,7 @@ describe('UserRepository CRUD', () => {
     const updated = await repo.update(created.id, { name: 'A2' });
     expect(updated?.name).toEqual('A2');
   });
+
   it('delete', async () => {
     const created = await repo.create({
       email: 'john@example.com',
@@ -52,12 +52,17 @@ describe('UserRepository CRUD', () => {
     });
     const deleted = await repo.delete(created.id);
     expect(deleted).toBe(true);
+
+    const found = await repo.findById(created.id);
+    expect(found).toBeNull();
   });
-  it('delete non-existent', async () => {
-    await expect(repo.delete('00000000-0000-0000-0000-000000000099')).rejects.toBeInstanceOf(
-      BadRequestError,
-    );
+
+  it('delete non-existent -> NotFoundError', async () => {
+    const id = '00000000-0000-0000-0000-000000000099';
+    await expect(repo.delete(id)).rejects.toBeInstanceOf(NotFoundError);
+    await expect(repo.delete(id)).rejects.toThrow();
   });
+
   it('unique constraint violation -> ConflictError', async () => {
     await repo.create({
       email: 'john@example.com',

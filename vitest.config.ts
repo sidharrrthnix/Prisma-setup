@@ -9,11 +9,11 @@ export default defineConfig({
     hookTimeout: 60_000,
     fileParallelism: false,
     env: {
-      DATABASE_URL: 'postgresql://testuser:testpass@localhost:5433/testdb', // Changed to 5433
+      DATABASE_URL: 'postgresql://testuser:testpass@localhost:5433/testdb',
       APP_NAME: 'test-app',
       PORT: '3000',
       NODE_ENV: 'test',
-      DB_SSL: 'false',
+      JWT_SECRET: 'test-jwt-secret-min-32-characters-long-required',
     },
   },
 });
